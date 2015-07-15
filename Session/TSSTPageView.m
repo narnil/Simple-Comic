@@ -50,7 +50,7 @@
 }
 
 
-- (id)initWithFrame:(NSRect)aRectangle;
+- (instancetype)initWithFrame:(NSRect)aRectangle;
 {
 	if((self = [super initWithFrame: aRectangle]))
 	{
@@ -110,8 +110,6 @@
 	}
 
     [self resizeView];
-//    [self correctViewPoint]; // Moved to sessionwindow
-//	[sessionController setPageTurn: 0];
 }
 
 
@@ -533,7 +531,6 @@
 
 - (NSSize)combinedImageSizeForZoom:(float)zoomScale
 {
-//    float zoomScale = (float)(10.0 + level) / 10.0;
 	NSSize firstSize = firstPageImage ? [firstPageImage size] : NSZeroSize;
 	NSSize secondSize = secondPageImage ? [secondPageImage size] : NSZeroSize;
     
@@ -750,8 +747,6 @@
 	
 	int modifier = [theEvent modifierFlags];
 	NSUserDefaults * defaultsController = [NSUserDefaults standardUserDefaults];
-//	int scaling = [[[sessionController session] valueForKey: TSSTPageScaleOptions] intValue];
-//	scaling = [sessionController currentPageIsText] ? 2 : scaling;
 		
 	if((modifier & NSCommandKeyMask) && [theEvent deltaY])
 	{
@@ -769,57 +764,6 @@
 		loupePower = loupePower > 6 ? 6 : loupePower;
 		[defaultsController setValue: @(loupePower) forKey: TSSTLoupePower];
 	}
-//	else if(scaling == 1)
-//	{
-//		if([theEvent deltaX] > 0)
-//		{
-//			scrollwheel.left += [theEvent deltaX];
-//			scrollwheel.right = 0;
-//			scrollwheel.up = 0;
-//			scrollwheel.down = 0;
-//		}
-//		else if([theEvent deltaX] < 0)
-//		{
-//			scrollwheel.right += [theEvent deltaX];
-//			scrollwheel.left = 0;
-//			scrollwheel.up = 0;
-//			scrollwheel.down = 0;
-//		}
-//		else if([theEvent deltaY] > 0)
-//		{
-//			scrollwheel.up += [theEvent deltaY];
-//			scrollwheel.left = 0;
-//			scrollwheel.right = 0;
-//			scrollwheel.down = 0;
-//		}
-//		else if([theEvent deltaY] < 0)
-//		{
-//			scrollwheel.down += [theEvent deltaY];
-//			scrollwheel.left = 0;
-//			scrollwheel.right = 0;
-//			scrollwheel.up = 0;
-//		}
-//				
-//		if(scrollwheel.left > 0.1)
-//		{
-//			[sessionController pageLeft: self];
-//			scrollwheel.left = 0;
-//		}
-//		else if(scrollwheel.right < -0.1)
-//		{
-//			[sessionController pageRight: self];
-//			scrollwheel.right = 0;
-//		}
-//		else if(scrollwheel.up > 0.1)
-//		{
-//			[sessionController previousPage];
-//		}
-//		else if(scrollwheel.down < -0.1)
-//		{
-//			[sessionController nextPage];
-//		}
-//
-//	}
 	else
 	{
 		NSRect visible = [[self enclosingScrollView] documentVisibleRect];
@@ -1197,7 +1141,7 @@
     {
         NSScrollView * scrollView = [self enclosingScrollView];
         NSClipView * clipView = [scrollView contentView];
-        [clipView scrollToPoint: [clipView constrainScrollPoint: scrollPoint]];
+        [clipView constrainBoundsRect: visible];
         [scrollView reflectScrolledClipView: clipView];
     }
     
@@ -1414,10 +1358,6 @@
     {
         [self addCursorRect: [[self enclosingScrollView] documentVisibleRect] cursor: [NSCursor openHandCursor]];
     }
-//	else if(canCrop)
-//	{
-//		[self addCursorRect: [[self enclosingScrollView] documentVisibleRect] cursor: [NSCursor crosshairCursor]];
-//	}
     else
     {
         [super resetCursorRects];

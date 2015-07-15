@@ -91,9 +91,8 @@ static NSSize monospaceCharacterSize;
 	
 	TSSTInfoPageAttributes = @{NSFontAttributeName: [NSFont fontWithName: @"Monaco" size: 14],
 							  NSParagraphStyleAttributeName: style};
+    [style release];
 	[TSSTInfoPageAttributes retain];
-	
-	[style release];
 }
 
 

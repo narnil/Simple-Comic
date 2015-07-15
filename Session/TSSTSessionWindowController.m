@@ -89,7 +89,7 @@
 /*!
  
 */
-- (id)initWithSession:(TSSTManagedSession *)aSession
+- (instancetype)initWithSession:(TSSTManagedSession *)aSession
 {
     self = [super init];
     if (self != nil)
@@ -97,7 +97,6 @@
 		pageTurn = 0;
 		pageSelectionInProgress = None;
 		mouseMovedTimer = nil;
-//		closing = NO;
         session = [aSession retain];
         BOOL cascade = [session valueForKey: @"position"] ? NO : YES;
         [self setShouldCascadeWindows: cascade];
@@ -214,7 +213,6 @@
     if([[pageController arrangedObjects] count] <= 0)
     {
         [self close];
-//		[[NSNotificationCenter defaultCenter] postNotificationName: TSSTSessionEndNotification object: self];
         return;
     }
 	
@@ -288,14 +286,14 @@
 
 
 
-- (NSImage *)imageForPageAtIndex:(int)index
+- (NSImage *)imageForPageAtIndex:(NSInteger)index
 {
     return [[pageController arrangedObjects][index] valueForKey: @"thumbnail"];
 }
 
 
 
-- (NSString *)nameForPageAtIndex:(int)index
+- (NSString *)nameForPageAtIndex:(NSInteger)index
 {
     return [[pageController arrangedObjects][index] valueForKey: @"name"];
 }
@@ -355,7 +353,6 @@
 {
     BOOL loupe = [[session valueForKey: @"loupe"] boolValue];
     NSPoint mouse = [NSEvent mouseLocation];
-    
     NSRect point = NSMakeRect(mouse.x, mouse.y, 6.0f, 6.0f);
     NSPoint localPoint = [pageView convertPoint: [[self window] convertRectFromScreen: point].origin fromView: nil];
     NSPoint scrollPoint = [pageScrollView convertPoint: [[self window] convertRectFromScreen: point].origin fromView: nil];
@@ -408,12 +405,10 @@
     [infoPicture setFrameSize: thumbSize];
     [infoPicture setImage: thumb];
 
-    NSRect area = NSMakeRect(point.x, point.y, 6.0f, 6.0f);
-    cursorPoint = [[bar window] convertRectFromScreen: area].origin;
-
+	cursorPoint = [[bar window] convertRectToScreen: (NSRect){point, NSZeroSize}].origin;
 	
     [infoWindow caretAtPoint: cursorPoint size: NSMakeSize(thumbSize.width, thumbSize.height)
-			   withLimitLeft: NSMinX([[bar window] frame]) 
+			   withLimitLeft: NSMinX([[bar window] frame])
 					   right: NSMaxX([[bar window] frame])];
 }
 
@@ -450,7 +445,7 @@
 
 - (IBAction)turnPage:(id)sender
 {
-    int segmentTag = [[sender cell] tagForSegment: [sender selectedSegment]];
+    NSInteger segmentTag = [[sender cell] tagForSegment: [sender selectedSegment]];
     if(segmentTag == 701)
     {
         [self pageLeft: self];
@@ -529,7 +524,7 @@
 
 - (IBAction)skipRight:(id)sender
 {
-    int index;
+    NSUInteger index;
     if([[session valueForKey: TSSTPageOrder] boolValue])
     {
         index = ([pageController selectionIndex] + 10);
@@ -548,7 +543,7 @@
 
 - (IBAction)skipLeft:(id)sender
 {
-    int index;
+    NSUInteger index;
     if(![[session valueForKey: TSSTPageOrder] boolValue])
     {
         index = ([pageController selectionIndex] + 10);
@@ -581,7 +576,7 @@
 /* Zoom method for the zoom segmented control. Each segment has its own tag. */
 - (IBAction)zoom:(id)sender
 {
-    int segmentTag = [[sender cell] tagForSegment: [sender selectedSegment]];
+    NSInteger segmentTag = [[sender cell] tagForSegment: [sender selectedSegment]];
     if(segmentTag == 801)
     {
         [self zoomIn: self];
@@ -647,7 +642,7 @@
 
 - (IBAction)rotate:(id)sender
 {
-    int segmentTag = [[sender cell] tagForSegment: [sender selectedSegment]];
+    NSInteger segmentTag = [[sender cell] tagForSegment: [sender selectedSegment]];
     if(segmentTag == 901)
     {
         [self rotateLeft: self];
@@ -718,7 +713,7 @@
 
 - (IBAction)launchJumpPanel:(id)sender
 {
-	[jumpField setIntValue: [pageController selectionIndex] + 1];
+	[jumpField setIntegerValue: [pageController selectionIndex] + 1];
 	[NSApp beginSheet: jumpPanel modalForWindow: [self window] modalDelegate: self didEndSelector: @selector(closeSheet:) contextInfo: NULL];
 }
 
@@ -801,7 +796,7 @@
 
 - (BOOL)canSelectPageIndex:(NSInteger)selection
 {
-	int index = [pageController selectionIndex];
+	NSUInteger index = [pageController selectionIndex];
 	index += selection;
 	TSSTPage * selectedPage = [pageController arrangedObjects][index];
 	TSSTManagedGroup * selectedGroup = [selectedPage valueForKey: @"group"];
@@ -858,7 +853,7 @@
 {
 	if(selection != -1)
 	{
-		int index = [pageController selectionIndex];
+		NSUInteger index = [pageController selectionIndex];
 		index += selection;
 		TSSTPage * selectedPage = [pageController arrangedObjects][index];
 		[pageController removeObject: selectedPage];
@@ -874,7 +869,7 @@
 	 otherwise 1. */
 	if(selection != -1)
 	{
-		int index = [pageController selectionIndex];
+		NSUInteger index = [pageController selectionIndex];
 		index += selection;
 		TSSTPage * selectedPage = [pageController arrangedObjects][index];
 		
@@ -882,7 +877,7 @@
 		[savePanel setTitle: @"Extract Page"];
 		[savePanel setPrompt: @"Extract"];
         [savePanel setNameFieldStringValue:[selectedPage name]];
-		if(NSOKButton == [savePanel runModal])
+		if(NSModalResponseOK == [savePanel runModal])
 		{
 			[[selectedPage pageData] writeToFile: [[savePanel URL] path] atomically: YES];
 		}
@@ -894,7 +889,7 @@
 {
 	if(selection != -1)
 	{
-		int index = [pageController selectionIndex];
+		NSUInteger index = [pageController selectionIndex];
 		index += selection;
 		TSSTPage * selectedPage = [pageController arrangedObjects][index];
 		TSSTManagedGroup * selectedGroup = [selectedPage valueForKey: @"group"];
@@ -907,8 +902,8 @@
 			if([(TSSTManagedArchive *)selectedGroup quicklookCompatible])
 			{
 				int coverIndex = [[selectedPage valueForKey: @"index"] intValue];
-				XADString * coverName = [(XADArchive *)[selectedGroup instance] rawNameOfEntry: coverIndex];
-				[UKXattrMetadataStore setString: [coverName stringWithEncoding: NSNonLossyASCIIStringEncoding]
+				NSString * coverName = [(XADArchive *)[selectedGroup instance] nameOfEntry: coverIndex];
+				[UKXattrMetadataStore setString: coverName
 										 forKey: @"QCCoverName" 
 										 atPath: archivePath 
 								   traverseLink: NO];
@@ -957,7 +952,7 @@
 }
 
 
-- (void)closeSheet:(int)code
+- (void)closeSheet:(NSInteger)code
 {
 	[jumpPanel close];
 }
@@ -1023,8 +1018,8 @@
     and that of the next image */
 - (void)changeViewImages
 {
-    int count = [[pageController arrangedObjects] count];
-    int index = [pageController selectionIndex];
+    NSUInteger count = [[pageController arrangedObjects] count];
+    NSUInteger index = [pageController selectionIndex];
     TSSTPage * pageOne = [pageController arrangedObjects][index];
     TSSTPage * pageTwo = (index + 1) < count ? [pageController arrangedObjects][(index + 1)] : nil;
     NSString * titleString = [pageOne valueForKey: @"name"];
@@ -1174,8 +1169,8 @@ images are currently visible and then skips over them.
         return;
     }
     
-    int numberOfImages = [[pageController arrangedObjects] count];
-	int selectionIndex = [pageController selectionIndex];
+    NSUInteger numberOfImages = [[pageController arrangedObjects] count];
+	NSUInteger selectionIndex = [pageController selectionIndex];
 	if((selectionIndex + 1) >= numberOfImages)
 	{
 		return;
@@ -1212,7 +1207,7 @@ images are currently visible and then skips over them.
         return;
     }
     
-	int selectionIndex = [pageController selectionIndex];
+	NSInteger selectionIndex = [pageController selectionIndex];
 	if((selectionIndex - 2) >= 0)
 	{
         NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
@@ -1302,7 +1297,7 @@ images are currently visible and then skips over them.
 
 - (NSManagedObjectContext *)managedObjectContext
 {
-    return [(SimpleComicAppDelegate *)[NSApp delegate] managedObjectContext];
+    return [(SimpleComicAppDelegate*)[NSApp delegate] managedObjectContext];
 }
 
 
@@ -1342,7 +1337,7 @@ images are currently visible and then skips over them.
 
 - (BOOL)canTurnPageNext
 {
-	int selectionIndex = [pageController selectionIndex];
+	NSInteger selectionIndex = [pageController selectionIndex];
 	if([pageController selectionIndex] >= ([[pageController content] count] - 1))
 	{
 		return NO;
@@ -1469,12 +1464,12 @@ images are currently visible and then skips over them.
 	int pageNumber = [string intValue];
 	if(pageNumber > [[pageController arrangedObjects] count])
 	{
-		[jumpField setIntValue: [[pageController arrangedObjects] count]];
+		[jumpField setIntegerValue: [[pageController arrangedObjects] count]];
 	}
 	else
 	{
 		NSBeep();
-		[jumpField setIntValue: [pageController selectionIndex] + 1];
+		[jumpField setIntegerValue: [pageController selectionIndex] + 1];
 	}
 	
 	return YES;
@@ -1551,10 +1546,7 @@ images are currently visible and then skips over them.
 		
         if(statusBar)
         {
-            NSPoint mouse = [NSEvent mouseLocation];
-            NSRect point = NSMakeRect(mouse.x, mouse.y, 6.0f, 6.0f);
-            NSPoint mouseLocation = [[self window] convertRectFromScreen: point].origin;
-
+			NSPoint mouseLocation = [[self window] convertRectFromScreen: (NSRect){[NSEvent mouseLocation], NSZeroSize}].origin;
             NSRect progressRect = [[[self window] contentView] convertRect: [progressBar progressRect] fromView: progressBar];
 			BOOL cursorInside = NSMouseInRect(mouseLocation, progressRect, [[[self window] contentView] isFlipped]);
 			if(cursorInside && ![pageView inLiveResize])
@@ -1707,12 +1699,12 @@ images are currently visible and then skips over them.
     
     // The center frame for each window is used during the 1st half of the fullscreen animation and is
     // the window at its original size but moved to the center of its eventual full screen frame.
-//    NSRect centerWindowFrame = rectWithSizeCenteredInRect(startingFrame.size, screenFrame);
+    // NSRect centerWindowFrame = rectWithSizeCenteredInRect(startingFrame.size, screenFrame);
     
     // Our animation will be broken into two stages.
     // First, we'll move the window to the center of the primary screen and then we'll enlarge
     // it its full screen size.
-    //
+
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
         
         [context setDuration:duration/4];

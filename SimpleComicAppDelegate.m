@@ -33,7 +33,6 @@
 #import "TSSTSortDescriptor.h"
 #import "TSSTPage.h"
 #import "TSSTManagedGroup.h"
-#import "TSSTManagedBookmarkGroup.h"
 #import "TSSTManagedSession.h"
 #import "TSSTCustomValueTransformers.h"
 #import "DTPreferencesController.h"
@@ -73,7 +72,7 @@ NSString * TSSTSessionEndNotification = @"sessionEnd";
 
 static NSArray * allAvailableStringEncodings(void)
 {
-    NSStringEncoding encodings[] = {
+    CFStringEncoding encodings[] = {
         kCFStringEncodingMacRoman,
         kCFStringEncodingISOLatin1,
         kCFStringEncodingASCII,
@@ -130,13 +129,13 @@ static NSArray * allAvailableStringEncodings(void)
         kCFStringEncodingWindowsVietnamese,
         kCFStringEncodingDOSPortuguese,
         kCFStringEncodingWindowsBalticRim,
-        NSNotFound
+        UINT_MAX
     };
     
     NSMutableArray * codeNumbers = [NSMutableArray array];
     int counter = 0;
     NSStringEncoding encoding;
-    while(encodings[counter] != NSNotFound)
+    while(encodings[counter] != UINT_MAX)
     {
         if(encodings[counter] != 101)
         {
@@ -256,32 +255,9 @@ static NSArray * allAvailableStringEncodings(void)
 	if(launchFiles)
 	{
 		TSSTManagedSession * session;
-//		if (optionHeldAtlaunch)
-//		{
-//			NSMutableArray * looseImages = [NSMutableArray array];
-//			for(NSString * path in launchFiles)
-//			{
-//				if([[TSSTManagedArchive archiveExtensions] containsObject: [[path pathExtension] lowercaseString]])
-//				{
-//					session = [self newSessionWithFiles: [NSArray arrayWithObject: path]];
-//					[self windowForSession: session];
-//				}
-//				else {
-//					[looseImages addObject: path];
-//				}
-//				
-//				if ([looseImages count]> 0) {
-//					session = [self newSessionWithFiles: looseImages];
-//					[self windowForSession: session];
-//				}
-//				
-//			}
-//		}
-//		else
-//		{
-			session = [self newSessionWithFiles: launchFiles];
-			[self windowForSession: session];
-//		}
+
+        session = [self newSessionWithFiles: launchFiles];
+        [self windowForSession: session];
 		
 		[launchFiles release];
 		launchFiles = nil;
@@ -289,7 +265,7 @@ static NSArray * allAvailableStringEncodings(void)
 }
 
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+- (NSApplicationTerminateReply):(NSApplication *)sender
 {	
 	NSUserDefaults * userDefaults = [NSUserDefaults standardUserDefaults];
 	
@@ -307,8 +283,14 @@ static NSArray * allAvailableStringEncodings(void)
     if(![self saveContext])
     {
         // Error handling wasn't implemented. Fall back to displaying a "quit anyway" panel.
-        int alertReturn = NSRunAlertPanel(nil, @"Could not save changes while quitting. Quit anyway?" , @"Quit anyway", @"Cancel", nil);
-        if (alertReturn == NSAlertAlternateReturn)
+        NSAlert *alert = [[NSAlert alloc] init];
+        [alert addButtonWithTitle:@"Quit anyway"];
+        [alert addButtonWithTitle:@"Cancel"];
+        [alert setMessageText:@"Could not save changes while quitting. Quit anyway?"];
+        [alert setInformativeText:@"Could not save changes while quitting"];
+        [alert setAlertStyle:NSWarningAlertStyle];
+        
+        if ([alert runModal] == NSAlertFirstButtonReturn)
         {
             reply = NSTerminateCancel;	
         }
@@ -358,70 +340,6 @@ static NSArray * allAvailableStringEncodings(void)
 		launchFiles = [filenames retain];
 	}
 }
-
-
-
-//- (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename;
-//{	
-//	if(!launchInProgress)
-//	{
-//		TSSTManagedSession * session;
-//		session = [self newSessionWithFiles: [NSArray arrayWithObject: filename]];
-//		[self windowForSession: session];
-//		return YES;
-//
-//	}
-//	
-//	return NO;
-//
-////	else
-////	{
-////		launchFiles = [filenames retain];
-////	}
-//}
-
-
-//- (void)application:(NSApplication *)sender openFiles:(NSArray *)filenames
-//{	
-//	BOOL option = (GetCurrentKeyModifiers()&(optionKey) != 0);
-//	if(!launchInProgress)
-//	{
-//		TSSTManagedSession * session;
-//		if (option)
-//		{
-//			NSMutableArray * looseImages = [NSMutableArray array];
-//			for(NSString * path in filenames)
-//			{
-//				if([[TSSTManagedArchive archiveExtensions] containsObject: [[path pathExtension] lowercaseString]])
-//				{
-//					session = [self newSessionWithFiles: [NSArray arrayWithObject: path]];
-//					[self windowForSession: session];
-//				}
-//				else
-//				{
-//					[looseImages addObject: path];
-//				}
-//				
-//				if ([looseImages count]> 0) {
-//					session = [self newSessionWithFiles: looseImages];
-//					[self windowForSession: session];
-//				}
-//				
-//			}
-//		}
-//		else
-//		{
-//			session = [self newSessionWithFiles: filenames];
-//			[self windowForSession: session];
-//		}
-//	}
-//	else
-//	{
-//		launchFiles = [filenames retain];
-//		optionHeldAtlaunch = option;
-//	}
-//}
-
 
 
 #pragma mark -
@@ -536,31 +454,33 @@ static NSArray * allAvailableStringEncodings(void)
     {
         [controller updateSessionObject];
     }
-    
+  
     NSError * error;
     NSManagedObjectContext * context = [self managedObjectContext];
-	[context retain];
-	[context lock];
+    [context retain];
+    [context lock];
     BOOL saved = NO;
     if (context != nil)
-	{
+    {
         if ([context commitEditing])
-		{
+        {
             if (![context save: &error])
-			{
-				// This default error handling implementation should be changed to make sure the error presented includes application specific error recovery. 
-				// For now, simply display 2 panels.
-				[[NSApplication sharedApplication] presentError: error];
+            {
+                // This default error handling implementation should be changed to make sure the error presented includes application specific error recovery.
+                // For now, simply display 2 panels.
+                //[[NSApplication sharedApplication] presentError: error];
+                NSLog(@"Unresolved error %@", error);
             }
-            else 
+            else
             {
                 saved = YES;
+                NSLog(@"OK");
             }
         }
     }
-	
-	[context unlock];
-	[context release];
+
+    [context unlock];
+    [context release];
     return saved;
 }
 
@@ -637,8 +557,6 @@ static NSArray * allAvailableStringEncodings(void)
 
 - (void)addFiles:(NSArray *)paths toSession:(TSSTManagedSession *)session
 {	
-//	[[self managedObjectContext] retain];
-//	[[self managedObjectContext] lock];
 	NSFileManager * fileManager = [NSFileManager defaultManager];
 	NSString * path, * fileExtension;
 	BOOL isDirectory, exists;
@@ -697,8 +615,6 @@ static NSArray * allAvailableStringEncodings(void)
 	
 	[session setValue: pageSet forKey: @"images"];
 	[pageSet release];
-//	[[self managedObjectContext] unlock];
-//	[[self managedObjectContext] release];
 }
 
 
@@ -722,9 +638,9 @@ static NSArray * allAvailableStringEncodings(void)
 	[allAllowedFilesExtensions addObjectsFromArray: [TSSTPage imageExtensions]];
     [addPagesModal setAllowedFileTypes:allAllowedFilesExtensions];
 
-	if([addPagesModal runModal] !=  NSCancelButton)
+	if([addPagesModal runModal] !=  NSModalResponseCancel)
 	{
-        filePaths = [NSMutableArray new];
+        filePaths = [NSMutableArray array];
         fileURLs = [addPagesModal URLs];
         
         for (fileURL in fileURLs) {
@@ -742,7 +658,7 @@ static NSArray * allAvailableStringEncodings(void)
 /*  Kills the password and encoding modals if the OK button was  clicked. */
 - (IBAction)modalOK:(id)sender
 {
-    [NSApp stopModalWithCode: NSOKButton]; 
+    [NSApp stopModalWithCode: NSModalResponseOK];
 }
 
 
@@ -750,7 +666,7 @@ static NSArray * allAvailableStringEncodings(void)
 /*  Kills the password and encoding modals if the Cancel button was clicked. */
 - (IBAction)modalCancel:(id)sender
 {
-    [NSApp stopModalWithCode: NSCancelButton]; 
+    [NSApp stopModalWithCode: NSModalResponseCancel];
 }
 
 
@@ -843,7 +759,7 @@ static NSArray * allAvailableStringEncodings(void)
 {
     NSString* password = nil;
 	[passwordField setStringValue: @""];
-    if([NSApp runModalForWindow: passwordPanel] != NSCancelButton)
+    if([NSApp runModalForWindow: passwordPanel] != NSModalResponseCancel)
     {
         password = [passwordField stringValue];
     }
@@ -868,7 +784,6 @@ static NSArray * allAvailableStringEncodings(void)
 		
 		NSUInteger index = [encodingIdentifiers indexOfObject: @(guess)];
 		NSUInteger counter = 0;
-//		NSStringEncoding encoding;
 		NSNumber * encoding;
 		while(!testText)
 		{
@@ -889,7 +804,7 @@ static NSArray * allAvailableStringEncodings(void)
 		
         [self testEncoding: self];
 		guess = NSNotFound;
-        if([NSApp runModalForWindow: encodingPanel] != NSCancelButton)
+        if([NSApp runModalForWindow: encodingPanel] != NSModalResponseCancel)
         {
             guess = [[[encodingMenu itemAtIndex: encodingSelection] representedObject] unsignedIntegerValue];
         }

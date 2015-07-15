@@ -79,10 +79,11 @@
 +(void)	setObject: (id)obj forKey: (NSString*)key atPath: (NSString*)path traverseLink:(BOOL)travLnk
 {
 	// Serialize our objects into a property list XML string:
-	NSString*	errMsg = nil;
-	NSData*		plistData = [NSPropertyListSerialization dataFromPropertyList: obj
-								format: NSPropertyListXMLFormat_v1_0
-								errorDescription: &errMsg];
+	NSError*	errMsg = nil;
+	NSData*		plistData = [NSPropertyListSerialization dataWithPropertyList: obj
+                                                                    format:NSPropertyListXMLFormat_v1_0
+                                                                   options:0
+                                                                     error: &errMsg];
 	if( errMsg )
 	{
 		[errMsg autorelease];
@@ -143,13 +144,14 @@
 
 +(id)	objectForKey: (NSString*)key atPath: (NSString*)path traverseLink:(BOOL)travLnk
 {
-	NSString*				errMsg = nil;
+	NSError*				errMsg = nil;
 	NSMutableData*			data = [[self class] dataForKey: key atPath: path traverseLink: travLnk];
 	NSPropertyListFormat	outFormat = NSPropertyListXMLFormat_v1_0;
-	id obj = [NSPropertyListSerialization propertyListFromData: data
-					mutabilityOption: NSPropertyListImmutable
-					format: &outFormat
-					errorDescription: &errMsg];
+    
+    id obj = [NSPropertyListSerialization propertyListWithData:data
+                                                       options:0
+                                                        format: &outFormat
+                                                         error: &errMsg];
 	if( errMsg )
 	{
 		[errMsg autorelease];

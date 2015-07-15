@@ -36,14 +36,6 @@ Copyright (c) 2006-2009 Dancing Tortoise Software
 {
 	NSString * stringOne = [object1 valueForKeyPath: [self key]];
 	NSString * stringTwo = [object2 valueForKeyPath: [self key]];
-//	if ([[stringOne pathComponents] count] == 1 && [[stringTwo pathComponents] count] > 1)
-//	{
-//		return NSOrderedDescending;
-//	}
-//	else if ([[stringTwo pathComponents] count] == 1 && [[stringOne pathComponents] count] > 1)
-//	{
-//		return NSOrderedAscending;
-//	}
 	
 	NSStringCompareOptions comparisonOptions = NSCaseInsensitiveSearch | NSNumericSearch | NSWidthInsensitiveSearch | NSForcedOrderingSearch;
     return [stringOne compare: stringTwo options: comparisonOptions];

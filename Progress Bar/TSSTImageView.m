@@ -15,7 +15,7 @@ static NSDictionary * stringAttributes;
 
 
 @synthesize imageName;
-
+@synthesize clears;
 
 + (void)initialize
 {
@@ -28,7 +28,7 @@ static NSDictionary * stringAttributes;
 }
 
 
-- (id) init
+- (instancetype) init
 {
     self = [super init];
     if (self != nil)
@@ -36,19 +36,6 @@ static NSDictionary * stringAttributes;
         clears = NO;
     }
     return self;
-}
-
-
-
-- (void)setClears:(BOOL)canClear
-{
-    clears = canClear;
-}
-
-
-- (BOOL)clears
-{
-    return clears;
 }
 
 
@@ -62,8 +49,6 @@ static NSDictionary * stringAttributes;
     }
     
     NSRect imageRect = rectWithSizeCenteredInRect([[self image] size], [self bounds]);
-//    [NSGraphicsContext saveGraphicsState];
-//    [[NSGraphicsContext currentContext] setImageInterpolation: NSImageInterpolationHigh];
     [[self image] drawInRect: imageRect
 					fromRect: NSZeroRect 
 				   operation: NSCompositeSourceOver 
@@ -77,8 +62,6 @@ static NSDictionary * stringAttributes;
         [roundedRectWithCornerRadius(NSInsetRect(stringRect, -5, -5), 10) fill];
         [self.imageName drawInRect: stringRect withAttributes: stringAttributes];
     }
-    
-//    [NSGraphicsContext restoreGraphicsState];
 }
 
 

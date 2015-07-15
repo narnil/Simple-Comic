@@ -15,6 +15,7 @@
 
 @implementation TSSTThumbnailView
 
+@synthesize dataSource;
 
 - (void)awakeFromNib
 {
@@ -25,7 +26,7 @@
 
 
 
-- (id)initWithFrame:(NSRect)frame
+- (instancetype)initWithFrame:(NSRect)frame
 {
     self = [super initWithFrame:frame];
     if (self)
@@ -77,20 +78,6 @@
 
 
 
-- (void)setDataSource:(id)source
-{
-    dataSource = source;
-}
-
-
-
-- (id)dataSource
-{
-    return dataSource;
-}
-
-
-
 - (void)removeTrackingRects
 {
     [thumbnailView setImage: nil];
@@ -136,9 +123,7 @@
     NSImage * thumbnail;
     NSRect drawRect;
     NSInteger counter = 0;
-    NSPoint mouse = [NSEvent mouseLocation];
-    NSRect point = NSMakeRect(mouse.x, mouse.y, 6.0f, 6.0f);
-    NSPoint mousePoint = [[self window] convertRectFromScreen: point].origin;
+	NSPoint mousePoint = [[self window] convertRectFromScreen: (NSRect){[NSEvent mouseLocation], NSZeroSize}].origin;
 	mousePoint = [self convertPoint: mousePoint fromView: nil];
     while (counter < limit)
     {

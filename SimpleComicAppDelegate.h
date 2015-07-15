@@ -123,16 +123,16 @@ extern NSString * TSSTSessionEndNotification;
 + (void)setMetadata:(NSString *)value forKey:(NSString *)key onStoreWithURL:(NSURL *)url managedBy:(NSPersistentStoreCoordinator *)coordinator;
 
 /*  Core Data methods, slightly altered boilerplate. */
-- (NSPersistentStoreCoordinator *)persistentStoreCoordinator;
-- (NSManagedObjectModel *)managedObjectModel;
-- (NSManagedObjectContext *)managedObjectContext;
-- (NSString *)applicationSupportFolder;
-- (BOOL)saveContext;
+@property (readonly, strong) NSPersistentStoreCoordinator *persistentStoreCoordinator;
+@property (readonly, copy) NSManagedObjectModel *managedObjectModel;
+@property (readonly, strong) NSManagedObjectContext *managedObjectContext;
+@property (readonly, copy) NSString *applicationSupportFolder;
+@property (readonly) BOOL saveContext;
 
 
 /*  Creates a new Session object based on user prefs and then 
     passes the files array to addFiles:toSesion: */
-- (TSSTManagedSession *)newSessionWithFiles:(NSArray *)files;
+- (TSSTManagedSession *)newSessionWithFiles:(NSArray *)files NS_RETURNS_NOT_RETAINED;
 
 /*  This method is called every time an existing session needs
     to be made visible to a user. */
